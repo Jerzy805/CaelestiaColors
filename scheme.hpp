@@ -19,6 +19,11 @@ struct Scheme
     std::string flavour;
     std::unordered_map<std::string, Color> colors;
 
+    Scheme() = default;
+
+    Scheme(const std::string& name, const std::string& flavour, const std::unordered_map<std::string, Color> colors) :
+        name(name), flavour(flavour), colors(colors) {}
+
     std::string to_string() const // generuje tekst do strumieniowania w dowolny sposób, NIE zapisuje nazwy
     {
         std::string buffer;// do tego obiektu wszystko zapisujemy
