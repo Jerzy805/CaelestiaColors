@@ -117,4 +117,9 @@ struct Color
     {
         return r == other.r && (g == other.g && b == other.b);
     }
+
+    bool operator!=(const Color& other) const
+    {
+        return !(*this == other); // korzystamy ze zdefiniowanego wcześniej operatora ==
+    }
 };
