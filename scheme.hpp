@@ -211,3 +211,23 @@ nl::json schemes_to_json(const std::unordered_map<std::string, Scheme>& schemes)
 
     return data;
 }
+
+void save_schemes_to_file(const fs::path& path, const std::unordered_map<std::string, Scheme>& schemes)
+{
+    if (fs::exists(path) && !fs::is_regular_file(path))
+    {
+        throw std::runtime_error("Podana ścieżka nie jest plikiem");
+    }
+
+    // najpierw próbujemy otworzyć plik, jeżeli się nie uda to nie ma co serializować schematów których może być bardzo wiele
+    std::ofstream file(path); // domyślnie nadpisujemy, ale rozważyć czy nie ma edge casów w których to nie działa
+
+    if (!file)
+    {
+        throw std::runtime_error("Nie udało się otworzyć pliku");
+    }
+
+    auto data = schemes_to_json(schemes);
+
+    file << data.dump(4); // od razu definiujemy formatowanie danych
+}
