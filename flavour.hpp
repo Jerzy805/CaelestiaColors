@@ -84,6 +84,17 @@ struct Flavour
 
         return data;
     }
+
+    bool operator==(const Flavour& other) const
+    {
+        return colors == other.colors;
+        // korzystamy z istniejącego operatora porównania std::unordered_map
+    }
+
+    bool operator!=(const Flavour& other) const
+    {
+        return !(*this == other);
+    }
 };
 
 // każdy schemat ma swoje warianty, nazwy kolorów i ich wartości są przechowywane w ramach struktury Flavour

@@ -157,6 +157,16 @@ struct Scheme
 
         return data;
     }
+
+    bool operator==(const Scheme& other) const
+    {
+        return name == other.name && flavours == other.flavours;
+    }
+
+    bool operator!=(const Scheme& other) const
+    {
+        return !(*this == other);
+    }
 };
 
 std::unordered_map<std::string, Scheme> parse_schemes_file(const std::string& path) // tutaj rodzaj ścieżki nie ma większego znaczenia
