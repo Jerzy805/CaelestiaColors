@@ -112,4 +112,9 @@ struct Color
         
         return _r + _g + _b;
     }
+
+    bool operator==(const Color& other) const
+    {
+        return r == other.r && (g == other.g && b == other.b);
+    }
 };
