@@ -145,7 +145,7 @@ struct Scheme
     }
 };
 
-std::unordered_map<std::string, Scheme> parse_schemes_files(const std::string& path) // tutaj rodzaj ścieżki nie ma większego znaczenia
+std::unordered_map<std::string, Scheme> parse_schemes_file(const std::string& path) // tutaj rodzaj ścieżki nie ma większego znaczenia
 {
     std::ifstream file(path);
 
@@ -158,5 +158,30 @@ std::unordered_map<std::string, Scheme> parse_schemes_files(const std::string& p
 
     file >> data; // strumieniujemy całą zawartość pliku do data
 
-    
+    std::unordered_map<std::string, Scheme> schemes; // tutaj wszystko wrzucamy
+
+    for (const auto& [name, flavours] : data.items()) // iterujemy po nazwach a następnie po wariantach
+    {
+        Scheme scheme;
+        scheme.name = name;
+
+        for (const auto& [flavour_name, colors] : flavours.items())
+        {
+            Flavour scheme_flavour;
+
+            for (const auto& [color_name, color_value] : colors.items())
+            {
+                auto text_value = color_value.get<std::string>(); // rzutujemy obiekt json na string C++
+
+                scheme_flavour.colors.emplace(color_name, Color::from_hex(text_value));
+                // na późniejszym etapie zmienię na try_emplace, ewentualnie std::move, to jest wersja tymczasowa
+            }
+
+            scheme.add_flavour(flavour_name, scheme_flavour);
+        }
+
+        schemes.emplace(name, scheme);
+    }
+
+    return schemes; // zwracamy poprawnie wczytane dane
 }
