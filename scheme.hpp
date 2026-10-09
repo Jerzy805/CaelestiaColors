@@ -75,6 +75,8 @@ struct Scheme
         {
             throw std::runtime_error("Nie istnieje wariant o tej nazwie");
         }
+
+        it->second = flavour;
     }
 
     void remove_flavour(const std::string& key)
