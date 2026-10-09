@@ -143,6 +143,18 @@ struct Scheme
             throw std::runtime_error("Write error");
         }
     }
+
+    nl::json to_json() const
+    {
+        nl::json data;
+
+        for (const auto& [flavour_name, flavour_value] : flavours)
+        {
+            data[flavour_name] = flavour_value.to_json();
+        }
+
+        return data;
+    }
 };
 
 std::unordered_map<std::string, Scheme> parse_schemes_file(const std::string& path) // tutaj rodzaj ścieżki nie ma większego znaczenia
@@ -184,4 +196,16 @@ std::unordered_map<std::string, Scheme> parse_schemes_file(const std::string& pa
     }
 
     return schemes; // zwracamy poprawnie wczytane dane
+}
+
+nl::json schemes_to_json(const std::unordered_map<std::string, Scheme>& schemes)
+{
+    nl::json data;
+
+    for (const auto& [scheme_name, scheme_value] : schemes)
+    {
+        data[scheme_name] = scheme_value.to_json();
+    }
+
+    return data;
 }

@@ -5,3 +5,4 @@ scheme
 test.cpp
 scheme.json
 .vscode/c_cpp_properties.json
+test.json
