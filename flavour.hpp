@@ -4,6 +4,9 @@
 #include <unordered_map>
 #include <stdexcept>
 #include "color.hpp"
+#include <nlohmann/json.hpp>
+
+namespace nl = nlohmann;
 
 struct Flavour
 {
@@ -69,7 +72,18 @@ struct Flavour
             throw std::runtime_error("Nie istnieje kolor o tej nazwie");
         }
     }
+
+    nl::json to_json() const // generuje obiekt JSON, ale nie zapisuje go nigdzie
+    {
+        nl::json data;
+
+        for (const auto& [color_name, color_value] : colors)
+        {
+            data[color_name] = color_value.to_hex();
+        }
+
+        return data;
+    }
 };
 
-// każdy schemat ma swoje warianty, nazwy kolorów i ich wartości są przechowywane w ramach struktury Flavour, a obiekty struktury Scheme przechowują
-// vectora flavourów
+// każdy schemat ma swoje warianty, nazwy kolorów i ich wartości są przechowywane w ramach struktury Flavour
