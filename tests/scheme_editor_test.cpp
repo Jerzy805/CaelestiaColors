@@ -1,4 +1,4 @@
-#include "../scheme_editor.hpp"
+#include <caelestia_colors/scheme_editor.hpp>
 
 #include <filesystem>
 #include <fstream>
