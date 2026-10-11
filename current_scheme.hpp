@@ -4,6 +4,7 @@
 #include <filesystem>
 #include <fstream>
 #include <string>
+#include <stdexcept>
 
 namespace fs = std::filesystem;
 
@@ -52,6 +53,12 @@ class CurrentScheme
         }
 
         file << to_json().dump(4);
+        file.flush(); // dla pewności późniejszego sprawdzania 
+
+        if (!file) // sprawdzamy stan strumienia po operacji
+        {
+            throw std::runtime_error("Nie udało się zapisać pliku wyjściowego");
+        }
     }
 
     static CurrentScheme from_file(const fs::path& path)
@@ -66,11 +73,18 @@ class CurrentScheme
         nl::json data;
         file >> data;
 
+        // walidacja json
+        if (!data.is_object() || !data.contains("name") || !data.contains("flavour")
+            || !data.contains("mode") || !data.contains("colours"))
+        {
+            throw std::runtime_error("Niepoprawna struktura pliku schematu");
+        }
+
         CurrentScheme scheme;
 
-        scheme.name = data["name"];
-        scheme.flavour = data["flavour"];
-        scheme.mode = data["mode"];
+        scheme.name = data["name"].get<std::string>();
+        scheme.flavour = data["flavour"].get<std::string>();
+        scheme.mode = data["mode"].get<std::string>();
         
         for (const auto& [color_name, color_value] : data["colours"].items())
         {
