@@ -79,71 +79,71 @@ int main()
 {
     TestFiles files;
 
-    // 1. Wczytanie poprawnego pliku
+    // 1. Loading a valid file
     check_throws(
         [] { SchemeEditor::from_file(fs::path{}); },
-        "Pusta sciezka powoduje blad wczytywania"
+        "Empty path causes loading to fail"
     );
 
     auto editor = SchemeEditor::from_file(files.original);
 
     check(editor.get_current().get_name() == "Test Scheme",
-          "Wczytano nazwe schematu");
+          "Scheme name loaded");
 
     check(!editor.is_modified(),
-          "Nowo wczytany schemat nie jest zmodyfikowany");
+          "Newly loaded scheme is not modified");
 
-    // 2. Modyfikacja i reset
+    // 2. Modification and reset
     const auto original_colour =
         editor.get_current().get_colour_data().get_colour("primary");
 
-    editor.set_color("primary", Colour::from_hex("#010203"));
+    editor.set_colour("primary", Colour::from_hex("#010203"));
 
     check(editor.is_modified(),
-          "Zmiana koloru ustawia is_modified");
+          "Changing a colour sets is_modified");
 
     editor.reset();
 
     check(!editor.is_modified(),
-          "Reset przywraca stan oryginalny");
+          "Reset restores the original state");
 
     check(editor.get_current().get_colour_data().get_colour("primary")
               == original_colour,
-          "Reset przywraca pierwotny kolor");
+          "Reset restores the original colour");
 
-    // 3. Nieistniejacy kolor
+    // 3. Non-existent colour
     check_throws(
-        [&] { editor.set_color("unknown", Colour::from_hex("#010203")); },
-        "Nie mozna zmienic nieistniejacego koloru"
+        [&] { editor.set_colour("unknown", Colour::from_hex("#010203")); },
+        "Cannot change a non-existent colour"
     );
 
-    // 4. Save i ponowne wczytanie
-    editor.set_color("primary", Colour::from_hex("#010203"));
+    // 4. Save and reload
+    editor.set_colour("primary", Colour::from_hex("#010203"));
     editor.save();
 
     check(!editor.is_modified(),
-          "Po save schemat nie jest zmodyfikowany");
+          "Scheme is not modified after save");
 
     auto loaded = SchemeEditor::from_file(files.original);
 
     check(loaded.get_current().get_colour_data().get_colour("primary")
               == Colour::from_hex("#010203"),
-          "Zapisane dane mozna ponownie wczytac");
+          "Saved data can be loaded again");
 
     // 5. Save as
-    editor.set_color("background", Colour::from_hex("#FFFFFF"));
+    editor.set_colour("background", Colour::from_hex("#FFFFFF"));
     editor.save_as(files.second);
 
     check(editor.get_path() == files.second,
-          "save_as aktualizuje sciezke");
+          "save_as updates the path");
 
     check(!editor.is_modified(),
-          "Po save_as schemat nie jest zmodyfikowany");
+          "Scheme is not modified after save_as");
 
     check(fs::exists(files.second),
-          "save_as tworzy plik docelowy");
+          "save_as creates the destination file");
 
-    // 6. Reload po zewnetrznej zmianie pliku
+    // 6. Reload after an external file change
     {
         std::ofstream file(files.second);
         file << R"({
@@ -160,12 +160,12 @@ int main()
     editor.reload();
 
     check(editor.get_current().get_name() == "Reloaded",
-          "reload odczytuje nowa nazwe");
+          "reload reads the new name");
 
     check(!editor.is_modified(),
-          "Po reload stan jest czysty");
+          "State is clean after reload");
 
-    // 7. Niepoprawny JSON
+    // 7. Invalid JSON
     {
         std::ofstream file(files.invalid);
         file << "{ invalid json";
@@ -173,11 +173,11 @@ int main()
 
     check_throws(
         [&] { SchemeEditor::from_file(files.invalid); },
-        "Niepoprawny JSON powoduje wyjatek"
+        "Invalid JSON throws an exception"
     );
 
-    // 8. Nieudany reload nie powinien niszczyc stanu
-    editor.set_color("primary", Colour::from_hex("#010203"));
+    // 8. Failed reload should preserve state
+    editor.set_colour("primary", Colour::from_hex("#010203"));
 
     const auto before_failed_reload = editor.get_current();
 
@@ -188,37 +188,37 @@ int main()
 
     check_throws(
         [&] { editor.reload(); },
-        "Nieudany reload rzuca wyjatek"
+        "Failed reload throws an exception"
     );
 
     check(editor.get_current() == before_failed_reload,
-          "Nieudany reload zachowuje current");
+          "Failed reload preserves current");
 
     check(editor.is_modified(),
-          "Nieudany reload zachowuje status modyfikacji");
+          "Failed reload preserves modification status");
 
-        // 10. Nieudany zapis nie powinien zmieniać stanu edytora
-    editor.set_color("primary", Colour::from_hex("#ABCDEF"));
+    // 9. Failed save should preserve editor state
+    editor.set_colour("primary", Colour::from_hex("#ABCDEF"));
 
     const auto before_failed_save = editor.get_current();
     const auto path_before_failed_save = editor.get_path();
 
-    // Katalog nie może być użyty jako plik wyjściowy.
+    // A directory cannot be used as an output file.
     check_throws(
         [&] { editor.save_as(files.directory); },
-        "Zapis do katalogu powoduje wyjatek"
+        "Saving to a directory throws an exception"
     );
 
     check(editor.get_current() == before_failed_save,
-          "Nieudany save_as zachowuje current");
+          "Failed save_as preserves current");
 
     check(editor.get_path() == path_before_failed_save,
-          "Nieudany save_as zachowuje sciezke");
+          "Failed save_as preserves the path");
 
     check(editor.is_modified(),
-          "Nieudany save_as zachowuje status modyfikacji");
+          "Failed save_as preserves modification status");
 
-              // 11. Niepoprawna struktura JSON
+    // 10. Invalid JSON structure
     {
         std::ofstream file(files.missing_colours);
         file << R"({
@@ -230,7 +230,7 @@ int main()
 
     check_throws(
         [&] { SchemeEditor::from_file(files.missing_colours); },
-        "Brak pola colours powoduje wyjatek"
+        "Missing colours field throws an exception"
     );
 
     {
@@ -247,12 +247,12 @@ int main()
 
     check_throws(
         [&] { SchemeEditor::from_file(files.wrong_type); },
-        "Niepoprawny typ wartosci koloru powoduje wyjatek"
+        "Invalid colour value type throws an exception"
     );
 
-    // ostateczne podsumowanie
-    std::cout << "\nWynik: " << passed << " zaliczonych, "
-              << failed << " niezaliczonych testow.\n";
+    // Final summary
+    std::cout << "\nResult: " << passed << " passed, "
+              << failed << " failed tests.\n";
 
     return failed == 0 ? 0 : 1;
 }

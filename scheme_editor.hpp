@@ -28,7 +28,7 @@ class SchemeEditor
         current = original;
     }
 
-    void set_color(const std::string& key, const Colour& colour)
+    void set_colour(const std::string& key, const Colour& colour)
     {
         current.get_colour_data().set_colour(key, colour);
         // za sprawdzenie poprawności tej operacji odpowiada klasa Flavour, jeżeli rzuci wyjątkiem to w tym miejscu go propagujemy
