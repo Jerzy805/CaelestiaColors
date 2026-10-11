@@ -21,6 +21,7 @@ qt_add_executable(caelestia_colours
     app/main.cpp
     app/windows/main_window.hpp
     app/windows/main_window.cpp
+    app/widgets/clickable_frame.hpp
 )
 
 target_include_directories(caelestia_colours
