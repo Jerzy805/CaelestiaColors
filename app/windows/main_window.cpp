@@ -14,10 +14,13 @@
 #include <QVBoxLayout>
 #include <QVector>
 #include <QWidget>
+#include <QScrollArea>
 
 MainWindow::MainWindow(QWidget* parent)
     : QMainWindow(parent)
 {
+    m_scheme_editor = SchemeEditor::from_file("/home/jerzy/Pulpit/C++/nowe/projekty/caelestia_colors/caelestia.json");
+
     setWindowTitle("CaelestiaColours");
     resize(1280, 800);
     setMinimumSize(950, 600);
@@ -96,9 +99,6 @@ MainWindow::MainWindow(QWidget* parent)
     editorLayout->setContentsMargins(22, 20, 22, 22);
     editorLayout->setSpacing(18);
 
-    auto* paletteTitle = new QLabel("Catppuccin");
-    paletteTitle->setObjectName("panelTitle");
-
     auto* paletteDescription = new QLabel(
         "Your colours, organised in one place."
     );
@@ -106,32 +106,33 @@ MainWindow::MainWindow(QWidget* parent)
 
     auto* paletteHeader = new QVBoxLayout;
     paletteHeader->setSpacing(5);
-    paletteHeader->addWidget(paletteTitle);
     paletteHeader->addWidget(paletteDescription);
 
     editorLayout->addLayout(paletteHeader);
 
-    auto* colors = new QGridLayout;
+    auto* colorsWidget = new QWidget;
+    auto* colors = new QGridLayout(colorsWidget);
+
     colors->setSpacing(12);
 
-    const QStringList colorNames = {
-        "Rosewater", "Flamingo", "Pink", "Mauve",
-        "Red", "Maroon", "Peach", "Yellow",
-        "Green", "Teal", "Sky", "Sapphire",
-        "Blue", "Lavender", "Text", "Base"
-    };
+    auto* scrollArea = new QScrollArea;
+    scrollArea->setWidget(colorsWidget);
+    scrollArea->setWidgetResizable(true);
+    scrollArea->setObjectName("colorScrollArea");
 
-    const QStringList colorValues = {
-        "#f5e0dc", "#f2cdcd", "#f5c2e7", "#cba6f7",
-        "#f38ba8", "#eba0ac", "#fab387", "#f9e2af",
-        "#a6e3a1", "#94e2d5", "#89dceb", "#74c7ec",
-        "#89b4fa", "#b4befe", "#cdd6f4", "#1e1e2e"
-    };
+    const auto& colours = m_scheme_editor->get_current()
+        .get_colour_data().get_colours();
 
     QVector<ClickableFrame*> colourCards;
 
-    for (int i = 0; i < colorNames.size(); ++i) {
-        auto* card = new ClickableFrame(colorNames[i], colorValues[i]);
+    int i = 0;
+
+    for (const auto& [colour_name, colour] : colours)
+    {
+        const auto name = QString::fromStdString(colour_name);
+        const auto hex = "#" + QString::fromStdString(colour.to_hex());
+
+        auto* card = new ClickableFrame(name, hex);
         card->setObjectName("colorCard");
         card->setCursor(Qt::PointingHandCursor);
 
@@ -142,29 +143,27 @@ MainWindow::MainWindow(QWidget* parent)
         auto* swatch = new QFrame;
         swatch->setMinimumHeight(76);
         swatch->setObjectName("colorSwatch");
-        swatch->setStyleSheet(
-            QString(
-                "background-color: %1;"
-                "border-radius: 9px;"
-            ).arg(colorValues[i])
-        );
 
-        auto* name = new QLabel(colorNames[i]);
-        name->setObjectName("colorName");
+        swatch->setStyleSheet(QString("background-color: %1;"
+                "border-radius: 9px;").arg(hex));
 
-        auto* hex = new QLabel(colorValues[i].toUpper());
-        hex->setObjectName("colorHex");
+        auto* nameLabel = new QLabel(name);
+        nameLabel->setObjectName("colorName");
+
+        auto* hexLabel = new QLabel(hex.toUpper());
+        hexLabel->setObjectName("colorHex");
 
         cardLayout->addWidget(swatch);
-        cardLayout->addWidget(name);
-        cardLayout->addWidget(hex);
+        cardLayout->addWidget(nameLabel);
+        cardLayout->addWidget(hexLabel);
 
         colors->addWidget(card, i / 4, i % 4);
         colourCards.append(card);
+
+        ++i;
     }
 
-    editorLayout->addLayout(colors);
-    editorLayout->addStretch();
+    editorLayout->addWidget(scrollArea, 1);
 
     // Colour inspector
     auto* inspector = new QFrame;
@@ -178,13 +177,6 @@ MainWindow::MainWindow(QWidget* parent)
 
     auto* inspectorTitle = new QLabel("Colour details");
     inspectorTitle->setObjectName("panelTitle");
-
-    auto* selectedColor = new QFrame;
-    selectedColor->setMinimumHeight(110);
-    selectedColor->setStyleSheet(
-        "background-color: #89b4fa;"
-        "border-radius: 12px;"
-    );
 
     auto* colorPickerButton = new QPushButton("Choose colour...");
     colorPickerButton->setObjectName("secondaryButton");
@@ -205,30 +197,16 @@ MainWindow::MainWindow(QWidget* parent)
     "  background-color: #585b70;"
     "}");
 
-    auto* selectedName = new QLabel("Blue");
-    selectedName->setObjectName("panelTitle");
-
     auto* hexLabel = new QLabel("HEX VALUE");
     hexLabel->setObjectName("sectionTitle");
 
-    auto* hexValue = new QLineEdit("#89B4FA");
-    hexValue->setObjectName("valueField");
-    hexValue->setMaxLength(7);
-    hexValue->setPlaceholderText("#RRGGBB");
+    auto* selectedColor = new QFrame;
+    selectedColor->setMinimumHeight(110);
 
-    hexValue->setStyleSheet(
-    "QLineEdit {"
-    "  background-color: #313244;"
-    "  color: #cdd6f4;"
-    "  border: 1px solid #45475a;"
-    "  border-radius: 10px;"
-    "  padding: 10px 12px;"
-    "  selection-background-color: #cba6f7;"
-    "  selection-color: #1e1e2e;"
-    "}"
-    "QLineEdit:focus {"
-    "  border: 1px solid #cba6f7;"
-    "}");
+    auto* selectedName = new QLabel;
+    selectedName->setObjectName("panelTitle");
+
+    auto* hexValue = new QLineEdit;
 
     auto* info = new QLabel(
         "Select a colour from the palette to inspect its properties."
@@ -349,7 +327,6 @@ MainWindow::MainWindow(QWidget* parent)
     );
 
     // Open the colour picker dialog.
-    // Open the colour picker dialog.
     connect(colorPickerButton, &QPushButton::clicked, this,
         [this, updateCardColor]
         {
@@ -460,12 +437,6 @@ MainWindow::MainWindow(QWidget* parent)
         updateCardColor(m_selectedCard, m_selectedCard->hex());
     }
 
-    // Synchronize the inspector with the initial selection.
-    if (m_selectedCard != nullptr)
-    {
-        updateCardColor(m_selectedCard, m_selectedCard->hex());
-    }
-
     workspace->addWidget(sidebar);
     workspace->addWidget(editor, 1);
     workspace->addWidget(inspector);
@@ -480,6 +451,42 @@ MainWindow::MainWindow(QWidget* parent)
             font-family: "Inter", "Noto Sans", sans-serif;
             font-size: 13px;
         }
+
+        QScrollArea#colorScrollArea {
+            background-color: #191b22;
+            border: none;
+        }
+
+        QScrollArea#colorScrollArea QWidget {
+            background-color: transparent;
+        }
+
+        QScrollBar:vertical {
+            background: transparent;
+            width: 8px;
+            margin: 2px 0 2px 0;
+        }
+
+        QScrollBar::handle:vertical {
+            background: #45475a;
+            border-radius: 4px;
+            min-height: 30px;
+        }
+
+        QScrollBar::handle:vertical:hover {
+            background: #585b70;
+        }
+
+        QScrollBar::add-line:vertical,
+        QScrollBar::sub-line:vertical {
+            height: 0;
+        }
+
+        QScrollBar::add-page:vertical,
+        QScrollBar::sub-page:vertical {
+            background: transparent;
+        }
+
 
         QFrame#colorCard[selected="true"] {
             border: 2px solid #cba6f7;

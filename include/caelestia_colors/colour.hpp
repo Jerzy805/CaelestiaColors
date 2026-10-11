@@ -5,7 +5,7 @@
 #include <string_view>
 #include <stdexcept>
 
-int hex_digit_to_int(const char c)
+inline int hex_digit_to_int(const char c)
 {
     if (c >= '0' &&  c <= '9')
     {
@@ -25,7 +25,7 @@ int hex_digit_to_int(const char c)
     throw std::runtime_error("It's not hex code");
 }
 
-char int_to_hex_digit(const int value)
+inline char int_to_hex_digit(const int value)
 {
     if (value >= 0 && value <= 9)
     {
@@ -40,7 +40,7 @@ char int_to_hex_digit(const int value)
     throw std::runtime_error("Number out of 0-15 scope");
 }
 
-std::string int_hex_pair_to_string(const uint8_t hex)
+inline std::string int_hex_pair_to_string(const uint8_t hex)
 {
     int as = hex / 16;
     int bs = hex - 16 * as;
