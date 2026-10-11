@@ -1,4 +1,4 @@
-#include "SchemeEditor.hpp"
+#include "../scheme_editor.hpp"
 
 #include <filesystem>
 #include <fstream>
