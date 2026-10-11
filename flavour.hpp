@@ -8,9 +8,13 @@
 
 namespace nl = nlohmann;
 
-struct Flavour
+class Flavour
 {
     std::unordered_map<std::string, Color> colors;
+    
+    public:
+
+    const auto& get_colors() const { return colors; } // zwraca dostęp iteracyjny do kolekcji, którą modyfikujemy jedynie korzystając z API klasy flavour
 
     Color& get_color(const std::string& key) // rzuca wyjątkiem jeżeli kolor nie istnieje
     {

@@ -9,3 +9,6 @@ test.json
 .vscode/c_cpp_properties.json
 output.json
 cal
+caelestia.json
+.gitignore
+dane.json

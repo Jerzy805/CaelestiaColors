@@ -4,16 +4,31 @@
 #include <filesystem>
 #include <fstream>
 #include <string>
-#include <unordered_map>
 
 namespace fs = std::filesystem;
 
-struct CurrentScheme
+class CurrentScheme
 {
     std::string name;
     std::string flavour;
     std::string mode;
-    Flavour color_data; // tutaj trzymane są elementy klucz-wartość: np background-#FF0000
+    Flavour colour_data; // tutaj trzymane są elementy klucz-wartość: np background-#FF0000
+
+    public:
+
+    const std::string& get_name() const { return name; }
+    const std::string& get_flavour() const { return flavour; }
+    const std::string& get_mode() const { return mode; }
+
+    Flavour& get_colour_data()
+    {
+        return colour_data;
+    }
+
+    const Flavour& get_colour_data() const
+    {
+        return colour_data;
+    }
 
     nl::json to_json() const
     {
@@ -22,7 +37,7 @@ struct CurrentScheme
         data["name"] = name;
         data["flavour"] = flavour;
         data["mode"] = mode;
-        data["colours"] = color_data.to_json();
+        data["colours"] = colour_data.to_json();
 
         return data;
     }
@@ -59,7 +74,7 @@ struct CurrentScheme
         
         for (const auto& [color_name, color_value] : data["colours"].items())
         {
-            scheme.color_data.add_color(color_name, Color::from_hex(color_value)); // korzystamy z wewnętrznego API naszych struktur
+            scheme.colour_data.add_color(color_name, Color::from_hex(color_value)); // korzystamy z wewnętrznego API naszych struktur
         }
 
         return scheme;
@@ -70,7 +85,7 @@ struct CurrentScheme
         return name == other.name &&
             flavour == other.flavour &&
             mode == other.mode &&
-            color_data == other.color_data;
+            colour_data == other.colour_data;
     }
 
     bool operator!=(const CurrentScheme& other) const
