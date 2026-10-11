@@ -15,11 +15,17 @@
 #include <QVector>
 #include <QWidget>
 #include <QScrollArea>
+#include <cstdlib>
 
-MainWindow::MainWindow(QWidget* parent)
-    : QMainWindow(parent)
+MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent)
 {
-    m_scheme_editor = SchemeEditor::from_file("/home/jerzy/Pulpit/C++/nowe/projekty/caelestia_colors/caelestia.json");
+    m_scheme_editor = SchemeEditor::from_file(SchemeEditor::get_caelestia_scheme_path());
+
+    auto updateModifiedState = [this]()
+    {
+        m_app_title->setText(m_scheme_editor->is_modified()
+            ? "CaelestiaColours*" : "CaelestiaColours");
+    };
 
     setWindowTitle("CaelestiaColours");
     resize(1280, 800);
@@ -37,15 +43,15 @@ MainWindow::MainWindow(QWidget* parent)
     auto* header = new QHBoxLayout;
     header->setSpacing(10);
 
-    auto* title = new QLabel("CaelestiaColours"); // label title
-    title->setObjectName("appTitle");
+    m_app_title = new QLabel("CaelestiaColours"); // label title
+    m_app_title->setObjectName("appTitle");
 
     auto* subtitle = new QLabel("SCHEME EDITOR");
     subtitle->setObjectName("subtitle");
 
     auto* titleGroup = new QVBoxLayout;
     titleGroup->setSpacing(2);
-    titleGroup->addWidget(title);
+    titleGroup->addWidget(m_app_title);
     titleGroup->addWidget(subtitle);
 
     auto* newSchemeButton = new QPushButton("+  New scheme");
@@ -91,6 +97,17 @@ MainWindow::MainWindow(QWidget* parent)
     sidebarLayout->addWidget(search);
     sidebarLayout->addWidget(schemeList, 1);
 
+    auto* saveButton = new QPushButton("Save");
+
+    connect(saveButton, &QPushButton::clicked, this, [this, updateModifiedState]
+    {
+        m_scheme_editor->save();
+        updateModifiedState();
+    });
+
+    auto* actionLayout = new QHBoxLayout;
+    actionLayout->addWidget(saveButton);
+
     // Palette preview
     auto* editor = new QFrame;
     editor->setObjectName("panel");
@@ -109,6 +126,7 @@ MainWindow::MainWindow(QWidget* parent)
     paletteHeader->addWidget(paletteDescription);
 
     editorLayout->addLayout(paletteHeader);
+    editorLayout->addLayout(actionLayout);
 
     auto* colorsWidget = new QWidget;
     auto* colors = new QGridLayout(colorsWidget);
@@ -232,10 +250,8 @@ MainWindow::MainWindow(QWidget* parent)
     }
 
     // Update the selected colour across the GUI.
-    auto updateCardColor = [selectedName, hexValue, selectedColor](
-        ClickableFrame* card,
-        const QString& value
-    )
+    auto updateCardColor = [this, selectedName, hexValue, selectedColor, updateModifiedState](
+        ClickableFrame* card, const QString& value)
     {
         QColor color(value);
 
@@ -245,6 +261,12 @@ MainWindow::MainWindow(QWidget* parent)
         }
 
         const QString normalizedHex = color.name(QColor::HexRgb).toUpper();
+
+        const auto newColour = Colour::from_hex(normalizedHex.toStdString());
+
+        m_scheme_editor->set_colour(card->name().toStdString(), newColour); // colour actually changed but not saved yet
+
+        updateModifiedState();
 
         card->setHex(normalizedHex);
 
@@ -487,6 +509,31 @@ MainWindow::MainWindow(QWidget* parent)
             background: transparent;
         }
 
+        QScrollBar:horizontal {
+            background: transparent;
+            height: 8px;
+            margin: 0 2px 0 2px;
+        }
+
+        QScrollBar::handle:horizontal {
+            background: #45475a;
+            border-radius: 4px;
+            min-width: 30px;
+        }
+
+        QScrollBar::handle:horizontal:hover {
+            background: #585b70;
+        }
+
+        QScrollBar::add-line:horizontal,
+        QScrollBar::sub-line:horizontal {
+            width: 0;
+        }
+
+        QScrollBar::add-page:horizontal,
+        QScrollBar::sub-page:horizontal {
+            background: transparent;
+        }
 
         QFrame#colorCard[selected="true"] {
             border: 2px solid #cba6f7;
