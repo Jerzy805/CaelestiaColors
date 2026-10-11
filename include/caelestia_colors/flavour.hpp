@@ -14,7 +14,7 @@ class Flavour
     
     public:
 
-    const auto& get_colours() const { return colours; } // zwraca dostęp iteracyjny do kolekcji, którą modyfikujemy jedynie korzystając z API klasy flavour
+    const auto& get_colours() const { return colours; }
 
     const Colour& get_colour(const std::string& key) const
     {
@@ -22,19 +22,19 @@ class Flavour
 
         if (it == colours.end())
         {
-            throw std::runtime_error("Nie istnieje kolor o tej nazwie");
+            throw std::runtime_error("Colour with that name not found");
         }
 
         return it->second;
     }
 
-    void set_colour(const std::string& key, const Colour& colour) // rzuca wyjątkiem jeżeli kolor nie jest jeszcze zdefiniowany
+    void set_colour(const std::string& key, const Colour& colour) // throws an exception if colour doesn't exist
     {
         auto it = colours.find(key);
 
         if (it == colours.end())
         {
-            throw std::runtime_error("Nie istnieje kolor o tej nazwie");
+            throw std::runtime_error("Colour with that name not found");
         }
 
         it->second = colour;
@@ -45,27 +45,27 @@ class Flavour
         return colours.find(key) != colours.end();
     }
 
-    void add_colour(const std::string& key, const Colour& colour) // rzuca wyjątkiem kiedy kolor jest już zdefiniowany
+    void add_colour(const std::string& key, const Colour& colour) // throw an exception when colour already exists
     {
         auto result = colours.emplace(key, colour);
 
         if (!result.second)
         {
-            throw std::runtime_error("Istnieje już kolor o tej nazwie");
+            throw std::runtime_error("Colour with that name already exists");
         }
     }
 
-    void remove_colour(const std::string& key) // rzuca wyjątkiem kiedy kolor nie istnieje
+    void remove_colour(const std::string& key) // throws an exception when colours doesn't exist
     {
         auto result = colours.erase(key);
 
         if (result == 0)
         {
-            throw std::runtime_error("Nie istnieje kolor o tej nazwie");
+            throw std::runtime_error("Colour with that name doesn't exist");
         }
     }
 
-    nl::json to_json() const // generuje obiekt JSON, ale nie zapisuje go nigdzie
+    nl::json to_json() const // generates JSON object but doesn't save it anywhere
     {
         nl::json data;
 
@@ -80,7 +80,6 @@ class Flavour
     bool operator==(const Flavour& other) const
     {
         return colours == other.colours;
-        // korzystamy z istniejącego operatora porównania std::unordered_map
     }
 
     bool operator!=(const Flavour& other) const
@@ -88,5 +87,3 @@ class Flavour
         return !(*this == other);
     }
 };
-
-// każdy schemat ma swoje warianty, nazwy kolorów i ich wartości są przechowywane w ramach struktury Flavour

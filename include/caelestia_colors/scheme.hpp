@@ -8,12 +8,12 @@
 
 namespace fs = std::filesystem;
 
-class CurrentScheme
+class Scheme
 {
     std::string name;
     std::string flavour;
     std::string mode;
-    Flavour colour_data; // tutaj trzymane są elementy klucz-wartość: np background-#FF0000
+    Flavour colour_data; // now here are stored key-value elements, depends on the implementation of Flavour, now eg. background-#FF0000
 
     public:
 
@@ -49,38 +49,38 @@ class CurrentScheme
 
         if (!file)
         {
-            throw std::runtime_error("Nie udało się otworzyć pliku wyjściowego");
+            throw std::runtime_error("Failed to open input file");
         }
 
         file << to_json().dump(4);
-        file.flush(); // dla pewności późniejszego sprawdzania 
+        file.flush(); // just to make sure our stream checking makes sense
 
-        if (!file) // sprawdzamy stan strumienia po operacji
+        if (!file) // checking if stream is correct after saving data
         {
-            throw std::runtime_error("Nie udało się zapisać pliku wyjściowego");
+            throw std::runtime_error("Failed to save data");
         }
     }
 
-    static CurrentScheme from_file(const fs::path& path)
+    static Scheme from_file(const fs::path& path)
     {
         std::ifstream file(path);
 
         if (!file)
         {
-            throw std::runtime_error("Nie udało się otworzyć pliku wejściowego");
+            throw std::runtime_error("Failed to open input file");
         }
 
         nl::json data;
         file >> data;
 
-        // walidacja json
+        // JSON validation
         if (!data.is_object() || !data.contains("name") || !data.contains("flavour")
             || !data.contains("mode") || !data.contains("colours"))
         {
-            throw std::runtime_error("Niepoprawna struktura pliku schematu");
+            throw std::runtime_error("Invalid scheme file structure");
         }
 
-        CurrentScheme scheme;
+        Scheme scheme;
 
         scheme.name = data["name"].get<std::string>();
         scheme.flavour = data["flavour"].get<std::string>();
@@ -88,13 +88,13 @@ class CurrentScheme
         
         for (const auto& [color_name, color_value] : data["colours"].items())
         {
-            scheme.colour_data.add_colour(color_name, Colour::from_hex(color_value)); // korzystamy z wewnętrznego API naszych struktur
+            scheme.colour_data.add_colour(color_name, Colour::from_hex(color_value)); // using Flavour class API
         }
 
         return scheme;
     }
 
-    bool operator==(const CurrentScheme& other) const
+    bool operator==(const Scheme& other) const
     {
         return name == other.name &&
             flavour == other.flavour &&
@@ -102,8 +102,8 @@ class CurrentScheme
             colour_data == other.colour_data;
     }
 
-    bool operator!=(const CurrentScheme& other) const
+    bool operator!=(const Scheme& other) const
     {
-        return !(*this == other); // korzystamy z wcześniej zdefiniowanego operator ==
+        return !(*this == other);
     }
 };

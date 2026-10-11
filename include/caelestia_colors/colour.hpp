@@ -22,7 +22,7 @@ int hex_digit_to_int(const char c)
         return c - 'a' + 10;
     }
 
-    throw std::runtime_error("To nie jest kod szesnastkowy");
+    throw std::runtime_error("It's not hex code");
 }
 
 char int_to_hex_digit(const int value)
@@ -37,14 +37,13 @@ char int_to_hex_digit(const int value)
         return 'A' + (value - 10);
     }
 
-    throw std::runtime_error("Liczba spoza zakresu 0-15");
+    throw std::runtime_error("Number out of 0-15 scope");
 }
 
 std::string int_hex_pair_to_string(const uint8_t hex)
 {
-    // hex = 242
-    int as = hex / 16; // zwróci liczbę całkowitą zaokrągloną w dół, o to nam chodzi
-    int bs = hex - 16 * as; // daje bs * 1 + 16 * as, o to chodzi
+    int as = hex / 16;
+    int bs = hex - 16 * as;
 
     char a = int_to_hex_digit(as);
     char b = int_to_hex_digit(bs);
@@ -64,7 +63,7 @@ struct Colour
     {
         if (hex.empty())
         {
-            throw std::runtime_error("Pusty string");
+            throw std::runtime_error("Empty string");
         }
 
         int start_index = 0;
@@ -73,11 +72,11 @@ struct Colour
         {
             if (hex[0] == '#' && hex.length() == 7)
             {
-                start_index = 1; // rozszyfrowujemy hex od drugiego znaku
+                start_index = 1; // analyzing from the second char
             }
             else
             {
-                throw std::runtime_error("Podany format jest niepoprawny");
+                throw std::runtime_error("Invalid data format");
             }
         }
 
@@ -104,7 +103,7 @@ struct Colour
         return Colour(r, g, b);
     }
 
-    std::string to_hex() const // zwraca std::stringa bez znaku '#'
+    std::string to_hex() const // returns std::string without # at the beginning
     {
         auto _r = int_hex_pair_to_string(r);
         auto _g = int_hex_pair_to_string(g);
@@ -120,6 +119,6 @@ struct Colour
 
     bool operator!=(const Colour& other) const
     {
-        return !(*this == other); // korzystamy ze zdefiniowanego wcześniej operatora ==
+        return !(*this == other);
     }
 };

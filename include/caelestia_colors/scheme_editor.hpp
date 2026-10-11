@@ -1,8 +1,8 @@
-// Klasa do wykonywania wszystkich operacji na schematach, przechowuje informacje o wczytanych danych
+// API class for all data operations
 
 #pragma once
 
-#include "current_scheme.hpp"
+#include "scheme.hpp"
 #include <filesystem>
 #include <fstream>
 
@@ -10,20 +10,20 @@ namespace fs = std::filesystem;
 
 class SchemeEditor
 {
-    CurrentScheme original; // pierwotnie wczytany schemat
-    CurrentScheme current; // obecne dane, potencjalnie nadpisane przez użytkownika
-    fs::path path; // ścieżka pliku z którego pobraliśmy oryginalne dane
+    Scheme original; // originally loaded scheme
+    Scheme current; // current data, potentially modified by the user
+    fs::path path; // path of the file from which the original data was loaded
 
     public:
-    SchemeEditor(const CurrentScheme& scheme, const fs::path& path) : original(scheme), 
-        current(scheme), path(path) {} // original i current na początku zawsze takie same
+    SchemeEditor(const Scheme& scheme, const fs::path& path) : original(scheme), 
+        current(scheme), path(path) {} // original and current are initially always identical
 
-    const CurrentScheme& get_original() const { return original; } // nie pozwalamy na zmianę oryginału
-    const CurrentScheme& get_current() const { return current; } // zmiana obecnego odbywa się explicite przez API
+    const Scheme& get_original() const { return original; } // modification of the original is not allowed
+    const Scheme& get_current() const { return current; } // modifications to the current state are performed explicitly through the API
 
-    const fs::path& get_path() const { return path; } // zwraca ścieżkę, niekoniecznie oryginalną
+    const fs::path& get_path() const { return path; } // returns the path, which is not necessarily the original path
 
-    void reset() // cofa wszystkie modyfikacje
+    void reset() // reverts all modifications
     {
         current = original;
     }
@@ -31,19 +31,19 @@ class SchemeEditor
     void set_colour(const std::string& key, const Colour& colour)
     {
         current.get_colour_data().set_colour(key, colour);
-        // za sprawdzenie poprawności tej operacji odpowiada klasa Flavour, jeżeli rzuci wyjątkiem to w tym miejscu go propagujemy
+        // validation of this operation is handled by the Flavour class; if it throws an exception, it is propagated here
     }
 
-    bool is_modified() const { return original != current; } // korzystamy z operatorów porównania klasy CurrentScheme
+    bool is_modified() const { return original != current; } // uses the comparison operators of the Scheme class
 
     static SchemeEditor from_file(const fs::path& path)
     {
-        auto scheme = CurrentScheme::from_file(path); // jeżeli się nie uda to propagujemy rzucony wyjątek
+        auto scheme = Scheme::from_file(path); // if loading fails, the thrown exception is propagated
 
         return SchemeEditor(scheme, path);
     }
 
-    void save() // zapisuje do oryginalnej ścieżki jedynie current, original zostaje utracony, ewentualnie później się przed tym zabezpieczymy
+    void save() // saves current to the original path; original is overwritten, which may be reconsidered later
     {
         current.save_to_file(path);
         original = current;
@@ -56,9 +56,9 @@ class SchemeEditor
         original = current; 
     }
 
-    void reload() // wczytuje z obecnej ścieżki edytor jeszcze raz
+    void reload() // reloads the editor from the current path
     {
-        original = CurrentScheme::from_file(path);
+        original = Scheme::from_file(path);
         current = original;
     }
 };
