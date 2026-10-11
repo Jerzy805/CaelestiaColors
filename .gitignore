@@ -1,15 +1,21 @@
+# Build artifacts
+build/
 a.out
 ctheme
-schemat
-scheme
-test.cpp
-scheme.json
-.vscode/c_cpp_properties.json
-test.json
-.vscode/c_cpp_properties.json
-output.json
 cal
-caelestia.json
-.gitignore
-dane.json
+scheme
+schemat
+
+# Test / temporary files
+test.json
 test_scheme.json
+output.json
+caelestia.json
+dane.json
+
+# IDE
+.vscode/
+
+# Generated files
+*.o
+*.out
