@@ -56,7 +56,7 @@ class SchemeCollection
         }
     }
 
-    nl::json schemes_to_json() const
+    nl::json to_json() const
     {
         nl::json data;
 
@@ -68,7 +68,7 @@ class SchemeCollection
         return data;
     }
 
-    void save_schemes_to_file(const fs::path& path) const
+    void save_to_file(const fs::path& path) const
     {
         if (fs::exists(path) && !fs::is_regular_file(path))
         {
@@ -83,9 +83,19 @@ class SchemeCollection
             throw std::runtime_error("Nie udało się otworzyć pliku");
         }
 
-        auto data = schemes_to_json();
+        auto data = to_json();
 
         file << data.dump(4); // od razu definiujemy formatowanie danych
+    }
+
+    bool operator==(const SchemeCollection& other)
+    {
+        return schemes == other.schemes;
+    }
+
+    bool operator!=(const SchemeCollection& other)
+    {
+        return schemes != other.schemes;
     }
 
     static SchemeCollection from_file(const std::string& path) // tutaj rodzaj ścieżki nie ma większego znaczenia
@@ -128,4 +138,3 @@ class SchemeCollection
         return collection; // zwracamy poprawnie wczytane dane
     }
 };
-
