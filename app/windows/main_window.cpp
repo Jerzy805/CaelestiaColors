@@ -2,15 +2,18 @@
 #include "windows/main_window.hpp"
 #include "widgets/clickable_frame.hpp"
 
+#include <QColor>
+#include <QColorDialog>
 #include <QFrame>
 #include <QGridLayout>
 #include <QHBoxLayout>
 #include <QLabel>
+#include <QLineEdit>
 #include <QListWidget>
 #include <QPushButton>
 #include <QVBoxLayout>
-#include <QWidget>
 #include <QVector>
+#include <QWidget>
 
 MainWindow::MainWindow(QWidget* parent)
     : QMainWindow(parent)
@@ -138,6 +141,7 @@ MainWindow::MainWindow(QWidget* parent)
 
         auto* swatch = new QFrame;
         swatch->setMinimumHeight(76);
+        swatch->setObjectName("colorSwatch");
         swatch->setStyleSheet(
             QString(
                 "background-color: %1;"
@@ -182,14 +186,49 @@ MainWindow::MainWindow(QWidget* parent)
         "border-radius: 12px;"
     );
 
+    auto* colorPickerButton = new QPushButton("Choose colour...");
+    colorPickerButton->setObjectName("secondaryButton");
+
+    colorPickerButton->setStyleSheet(
+    "QPushButton {"
+    "  background-color: #313244;"
+    "  color: #cdd6f4;"
+    "  border: 1px solid #45475a;"
+    "  border-radius: 10px;"
+    "  padding: 10px 12px;"
+    "}"
+    "QPushButton:hover {"
+    "  background-color: #45475a;"
+    "  border-color: #cba6f7;"
+    "}"
+    "QPushButton:pressed {"
+    "  background-color: #585b70;"
+    "}");
+
     auto* selectedName = new QLabel("Blue");
     selectedName->setObjectName("panelTitle");
 
     auto* hexLabel = new QLabel("HEX VALUE");
     hexLabel->setObjectName("sectionTitle");
 
-    auto* hexValue = new QLabel("#89B4FA");
+    auto* hexValue = new QLineEdit("#89B4FA");
     hexValue->setObjectName("valueField");
+    hexValue->setMaxLength(7);
+    hexValue->setPlaceholderText("#RRGGBB");
+
+    hexValue->setStyleSheet(
+    "QLineEdit {"
+    "  background-color: #313244;"
+    "  color: #cdd6f4;"
+    "  border: 1px solid #45475a;"
+    "  border-radius: 10px;"
+    "  padding: 10px 12px;"
+    "  selection-background-color: #cba6f7;"
+    "  selection-color: #1e1e2e;"
+    "}"
+    "QLineEdit:focus {"
+    "  border: 1px solid #cba6f7;"
+    "}");
 
     auto* info = new QLabel(
         "Select a colour from the palette to inspect its properties."
@@ -202,32 +241,229 @@ MainWindow::MainWindow(QWidget* parent)
     inspectorLayout->addWidget(selectedName);
     inspectorLayout->addWidget(hexLabel);
     inspectorLayout->addWidget(hexValue);
+    inspectorLayout->addWidget(colorPickerButton);
     inspectorLayout->addWidget(info);
     inspectorLayout->addStretch();
 
-    if (!colourCards.isEmpty())
-    {
-        colourCards.front()->setSelected(true);
-    }
+        // Set the initially selected colour card.
+    m_selectedCard = colourCards.isEmpty() ? nullptr : colourCards.front();
 
     for (auto* card : colourCards)
     {
+        card->setSelected(card == m_selectedCard);
+    }
+
+    // Update the selected colour across the GUI.
+    auto updateCardColor = [selectedName, hexValue, selectedColor](
+        ClickableFrame* card,
+        const QString& value
+    )
+    {
+        QColor color(value);
+
+        if (!color.isValid())
+        {
+            return false;
+        }
+
+        const QString normalizedHex = color.name(QColor::HexRgb).toUpper();
+
+        card->setHex(normalizedHex);
+
+        if (auto* swatch = card->findChild<QFrame*>("colorSwatch"))
+        {
+            swatch->setStyleSheet(
+                QString(
+                    "background-color: %1;"
+                    "border-radius: 9px;"
+                ).arg(normalizedHex)
+            );
+        }
+
+        if (auto* hexLabel = card->findChild<QLabel*>("colorHex"))
+        {
+            hexLabel->setText(normalizedHex);
+        }
+
+        selectedName->setText(card->name());
+        hexValue->setText(normalizedHex);
+
+        selectedColor->setStyleSheet(
+            QString(
+                "background-color: %1;"
+                "border-radius: 12px;"
+            ).arg(normalizedHex)
+        );
+
+        return true;
+    };
+
+    // Select a colour card and update the inspector.
+    for (auto* card : colourCards)
+    {
         connect(card, &ClickableFrame::clicked, this,
-            [card, colourCards, selectedName, hexValue, selectedColor]
+            [this, card, colourCards, updateCardColor]
             {
+                m_selectedCard = card;
+
                 for (auto* otherCard : colourCards)
                 {
                     otherCard->setSelected(otherCard == card);
                 }
 
-                selectedName->setText(card->name());
-                hexValue->setText(card->hex());
-
-                selectedColor->setStyleSheet(QString("background-color: %1;"
-                        "border-radius: 12px;").arg(card->hex())
-                );
+                updateCardColor(card, card->hex());
             }
         );
+    }
+
+    // Apply the HEX value when Enter is pressed.
+    connect(hexValue, &QLineEdit::returnPressed, this,
+        [this, hexValue, updateCardColor]
+        {
+            if (m_selectedCard == nullptr)
+            {
+                return;
+            }
+
+            if (!updateCardColor(m_selectedCard, hexValue->text().trimmed()))
+            {
+                hexValue->setText(m_selectedCard->hex());
+            }
+        }
+    );
+
+    // Validate the HEX value when the input loses focus.
+    connect(hexValue, &QLineEdit::editingFinished, this,
+        [this, hexValue, updateCardColor]
+        {
+            if (m_selectedCard == nullptr)
+            {
+                return;
+            }
+
+            if (!updateCardColor(m_selectedCard, hexValue->text().trimmed()))
+            {
+                hexValue->setText(m_selectedCard->hex());
+            }
+        }
+    );
+
+    // Open the colour picker dialog.
+    // Open the colour picker dialog.
+    connect(colorPickerButton, &QPushButton::clicked, this,
+        [this, updateCardColor]
+        {
+            if (m_selectedCard == nullptr)
+            {
+                return;
+            }
+
+            QColorDialog dialog(
+                QColor(m_selectedCard->hex()),
+                this
+            );
+
+            dialog.setWindowTitle("Choose colour");
+            dialog.setOption(QColorDialog::DontUseNativeDialog, true);
+
+            dialog.setStyleSheet(R"(
+                QColorDialog {
+                    background-color: #191b22;
+                    color: #e2e2eb;
+                }
+
+                QLabel {
+                    color: #e2e2eb;
+                }
+
+                QPushButton {
+                    background-color: #313244;
+                    color: #cdd6f4;
+                    border: 1px solid #45475a;
+                    border-radius: 8px;
+                    padding: 7px 12px;
+                }
+
+                QPushButton:hover {
+                    background-color: #45475a;
+                    border-color: #cba6f7;
+                }
+
+                QPushButton:pressed {
+                    background-color: #585b70;
+                }
+
+                QLineEdit,
+                QSpinBox,
+                QDoubleSpinBox {
+                    background-color: #22242d;
+                    color: #cdd6f4;
+                    border: 1px solid #45475a;
+                    border-radius: 6px;
+                    padding: 5px;
+                    selection-background-color: #cba6f7;
+                    selection-color: #1e1e2e;
+                }
+
+                QComboBox {
+                    background-color: #22242d;
+                    color: #cdd6f4;
+                    border: 1px solid #45475a;
+                    border-radius: 6px;
+                    padding: 5px;
+                }
+
+                QComboBox QAbstractItemView {
+                    background-color: #22242d;
+                    color: #cdd6f4;
+                    selection-background-color: #45475a;
+                    selection-color: #e2e2eb;
+                }
+
+                QTabWidget::pane {
+                    border: 1px solid #343642;
+                    background-color: #191b22;
+                }
+
+                QTabBar::tab {
+                    background-color: #22242d;
+                    color: #cdd6f4;
+                    padding: 7px 12px;
+                    border: 1px solid #343642;
+                }
+
+                QTabBar::tab:selected {
+                    background-color: #373044;
+                    color: #e6dcff;
+                    border-color: #cba6f7;
+                }
+            )");
+
+            if (dialog.exec() == QDialog::Accepted)
+            {
+                const QColor chosenColor = dialog.selectedColor();
+
+                if (chosenColor.isValid())
+                {
+                    updateCardColor(
+                        m_selectedCard,
+                        chosenColor.name(QColor::HexRgb)
+                    );
+                }
+            }
+        }
+    );
+
+    // Synchronize the inspector with the initial selection.
+    if (m_selectedCard != nullptr)
+    {
+        updateCardColor(m_selectedCard, m_selectedCard->hex());
+    }
+
+    // Synchronize the inspector with the initial selection.
+    if (m_selectedCard != nullptr)
+    {
+        updateCardColor(m_selectedCard, m_selectedCard->hex());
     }
 
     workspace->addWidget(sidebar);
@@ -335,15 +571,6 @@ MainWindow::MainWindow(QWidget* parent)
 
         QPushButton#primaryButton:hover {
             background-color: #d8baff;
-        }
-
-        QLabel#valueField {
-            background-color: #22242d;
-            border: 1px solid #343642;
-            border-radius: 9px;
-            padding: 11px;
-            color: #d8c5ff;
-            font-family: monospace;
         }
     )");
 }
