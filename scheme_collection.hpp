@@ -83,12 +83,12 @@ class SchemeCollection
         file << data.dump(4); // od razu definiujemy formatowanie danych
     }
 
-    bool operator==(const SchemeCollection& other)
+    bool operator==(const SchemeCollection& other) const
     {
         return schemes == other.schemes;
     }
 
-    bool operator!=(const SchemeCollection& other)
+    bool operator!=(const SchemeCollection& other) const
     {
         return schemes != other.schemes;
     }
