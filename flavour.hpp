@@ -16,18 +16,6 @@ class Flavour
 
     const auto& get_colours() const { return colours; } // zwraca dostęp iteracyjny do kolekcji, którą modyfikujemy jedynie korzystając z API klasy flavour
 
-    Colour& get_colour(const std::string& key) // rzuca wyjątkiem jeżeli kolor nie istnieje
-    {
-        auto it = colours.find(key);
-
-        if (it == colours.end())
-        {
-            throw std::runtime_error("Nie istnieje kolor o tej nazwie");
-        }
-
-        return it->second;
-    }
-
     const Colour& get_colour(const std::string& key) const
     {
         auto it = colours.find(key);
@@ -57,9 +45,9 @@ class Flavour
         return colours.find(key) != colours.end();
     }
 
-    void add_colour(const std::string& key, const Colour& Colour) // rzuca wyjątkiem kiedy kolor jest już zdefiniowany
+    void add_colour(const std::string& key, const Colour& colour) // rzuca wyjątkiem kiedy kolor jest już zdefiniowany
     {
-        auto result = colours.emplace(key, Colour);
+        auto result = colours.emplace(key, colour);
 
         if (!result.second)
         {
