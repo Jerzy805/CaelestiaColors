@@ -52,15 +52,15 @@ std::string int_hex_pair_to_string(const uint8_t hex)
     return std::string{a, b};
 }
 
-struct Color
+struct Colour
 {
     uint8_t r;
     uint8_t g;
     uint8_t b;
 
-    Color(uint8_t r, uint8_t g, uint8_t b) : r(r), g(g), b(b) {}
+    Colour(uint8_t r, uint8_t g, uint8_t b) : r(r), g(g), b(b) {}
 
-    static Color from_hex(const std::string& hex)
+    static Colour from_hex(const std::string& hex)
     {
         if (hex.empty())
         {
@@ -101,7 +101,7 @@ struct Color
         b += hex_digit_to_int(hex[start_index]);
         start_index++;
         
-        return Color(r, g, b);
+        return Colour(r, g, b);
     }
 
     std::string to_hex() const // zwraca std::stringa bez znaku '#'
@@ -113,12 +113,12 @@ struct Color
         return _r + _g + _b;
     }
 
-    bool operator==(const Color& other) const
+    bool operator==(const Colour& other) const
     {
         return r == other.r && (g == other.g && b == other.b);
     }
 
-    bool operator!=(const Color& other) const
+    bool operator!=(const Colour& other) const
     {
         return !(*this == other); // korzystamy ze zdefiniowanego wcześniej operatora ==
     }

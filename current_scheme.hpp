@@ -74,7 +74,7 @@ class CurrentScheme
         
         for (const auto& [color_name, color_value] : data["colours"].items())
         {
-            scheme.colour_data.add_color(color_name, Color::from_hex(color_value)); // korzystamy z wewnętrznego API naszych struktur
+            scheme.colour_data.add_colour(color_name, Colour::from_hex(color_value)); // korzystamy z wewnętrznego API naszych struktur
         }
 
         return scheme;

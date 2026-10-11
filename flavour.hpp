@@ -3,24 +3,24 @@
 #include <string>
 #include <unordered_map>
 #include <stdexcept>
-#include "color.hpp"
+#include "colour.hpp"
 #include <nlohmann/json.hpp>
 
 namespace nl = nlohmann;
 
 class Flavour
 {
-    std::unordered_map<std::string, Color> colors;
+    std::unordered_map<std::string, Colour> colours;
     
     public:
 
-    const auto& get_colors() const { return colors; } // zwraca dostęp iteracyjny do kolekcji, którą modyfikujemy jedynie korzystając z API klasy flavour
+    const auto& get_colours() const { return colours; } // zwraca dostęp iteracyjny do kolekcji, którą modyfikujemy jedynie korzystając z API klasy flavour
 
-    Color& get_color(const std::string& key) // rzuca wyjątkiem jeżeli kolor nie istnieje
+    Colour& get_colour(const std::string& key) // rzuca wyjątkiem jeżeli kolor nie istnieje
     {
-        auto it = colors.find(key);
+        auto it = colours.find(key);
 
-        if (it == colors.end())
+        if (it == colours.end())
         {
             throw std::runtime_error("Nie istnieje kolor o tej nazwie");
         }
@@ -28,11 +28,11 @@ class Flavour
         return it->second;
     }
 
-    const Color& get_color(const std::string& key) const
+    const Colour& get_colour(const std::string& key) const
     {
-        auto it = colors.find(key);
+        auto it = colours.find(key);
 
-        if (it == colors.end())
+        if (it == colours.end())
         {
             throw std::runtime_error("Nie istnieje kolor o tej nazwie");
         }
@@ -40,26 +40,26 @@ class Flavour
         return it->second;
     }
 
-    void set_color(const std::string& key, const Color& color) // rzuca wyjątkiem jeżeli kolor nie jest jeszcze zdefiniowany
+    void set_colour(const std::string& key, const Colour& colour) // rzuca wyjątkiem jeżeli kolor nie jest jeszcze zdefiniowany
     {
-        auto it = colors.find(key);
+        auto it = colours.find(key);
 
-        if (it == colors.end())
+        if (it == colours.end())
         {
             throw std::runtime_error("Nie istnieje kolor o tej nazwie");
         }
 
-        it->second = color;
+        it->second = colour;
     }
 
-    bool has_color(const std::string& key) const noexcept
+    bool has_colour(const std::string& key) const noexcept
     {
-        return colors.find(key) != colors.end();
+        return colours.find(key) != colours.end();
     }
 
-    void add_color(const std::string& key, const Color& color) // rzuca wyjątkiem kiedy kolor jest już zdefiniowany
+    void add_colour(const std::string& key, const Colour& Colour) // rzuca wyjątkiem kiedy kolor jest już zdefiniowany
     {
-        auto result = colors.emplace(key, color);
+        auto result = colours.emplace(key, Colour);
 
         if (!result.second)
         {
@@ -67,9 +67,9 @@ class Flavour
         }
     }
 
-    void remove_color(const std::string& key) // rzuca wyjątkiem kiedy kolor nie istnieje
+    void remove_colour(const std::string& key) // rzuca wyjątkiem kiedy kolor nie istnieje
     {
-        auto result = colors.erase(key);
+        auto result = colours.erase(key);
 
         if (result == 0)
         {
@@ -81,9 +81,9 @@ class Flavour
     {
         nl::json data;
 
-        for (const auto& [color_name, color_value] : colors)
+        for (const auto& [Colour_name, Colour_value] : colours)
         {
-            data[color_name] = color_value.to_hex();
+            data[Colour_name] = Colour_value.to_hex();
         }
 
         return data;
@@ -91,7 +91,7 @@ class Flavour
 
     bool operator==(const Flavour& other) const
     {
-        return colors == other.colors;
+        return colours == other.colours;
         // korzystamy z istniejącego operatora porównania std::unordered_map
     }
 
