@@ -5,6 +5,8 @@
 #include <stdexcept>
 #include "colour.hpp"
 #include <nlohmann/json.hpp>
+#include <vector>
+#include <algorithm>
 
 namespace nl = nlohmann;
 
@@ -26,6 +28,92 @@ class Flavour
         }
 
         return it->second;
+    }
+
+    std::vector<std::string> get_colour_names() const
+    {
+        static const std::vector<std::string> priority = {
+            "primary",
+            "secondary",
+            "tertiary",
+            "error",
+            "success",
+
+            "background",
+            "surface",
+            "surfaceVariant",
+            "surfaceDim",
+            "surfaceBright",
+            "surfaceContainer",
+            "surfaceContainerHigh",
+            "surfaceContainerHighest",
+            "surfaceContainerLow",
+            "surfaceContainerLowest",
+
+            "onPrimary",
+            "onSecondary",
+            "onTertiary",
+            "onBackground",
+            "onSurface",
+            "onSurfaceVariant",
+            "onError",
+            "onErrorContainer",
+
+            "primaryContainer",
+            "secondaryContainer",
+            "tertiaryContainer",
+            "errorContainer",
+            "successContainer",
+
+            "outline",
+            "outlineVariant",
+            "shadow",
+            "scrim"
+        };
+
+        std::vector<std::string> names;
+        names.reserve(colours.size());
+
+        for (const auto& name : priority)
+        {
+            if (colours.contains(name))
+            {
+                names.push_back(name);
+            }
+        }
+
+        decltype(names) remaining;
+
+
+
+        for (const auto& [name, colour] : colours)
+        {
+            if (std::find(names.begin(), names.end(), name) == names.end())
+            {
+                remaining.push_back(name);
+            }
+        }
+
+        std::sort(remaining.begin(), remaining.end());
+
+        names.insert(names.end(), remaining.begin(), remaining.end());
+
+        return names;
+    }
+
+    std::vector<std::string> find_colours(const std::string& query) const
+    {
+        std::vector<std::string> results;
+
+        for (const auto& name : get_colour_names())
+        {
+            if (name.find(query) != std::string::npos)
+            {
+                results.push_back(name);
+            }
+        }
+
+        return results;
     }
 
     void set_colour(const std::string& key, const Colour& colour) // throws an exception if colour doesn't exist

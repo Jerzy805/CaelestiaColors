@@ -54,11 +54,15 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent)
     titleGroup->addWidget(m_app_title);
     titleGroup->addWidget(subtitle);
 
+    auto* search = new QLabel("⌕   Search schemes...");
+    search->setObjectName("searchPlaceholder");
+
     auto* newSchemeButton = new QPushButton("+  New scheme");
     newSchemeButton->setObjectName("primaryButton");
 
     header->addLayout(titleGroup);
     header->addStretch();
+    header->addWidget(search);
     header->addWidget(newSchemeButton);
 
     rootLayout->addLayout(header);
@@ -80,9 +84,6 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent)
     auto* schemesTitle = new QLabel("YOUR SCHEMES");
     schemesTitle->setObjectName("sectionTitle");
 
-    auto* search = new QLabel("⌕   Search schemes...");
-    search->setObjectName("searchPlaceholder");
-
     auto* schemeList = new QListWidget;
     schemeList->setObjectName("schemeList");
     schemeList->addItems({
@@ -93,11 +94,10 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent)
     });
     schemeList->setCurrentRow(0);
 
-    sidebarLayout->addWidget(schemesTitle);
-    sidebarLayout->addWidget(search);
-    sidebarLayout->addWidget(schemeList, 1);
+    
 
     auto* saveButton = new QPushButton("Save");
+    saveButton->setObjectName("secondaryButton");
 
     connect(saveButton, &QPushButton::clicked, this, [this, updateModifiedState]
     {
@@ -105,8 +105,9 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent)
         updateModifiedState();
     });
 
-    auto* actionLayout = new QHBoxLayout;
-    actionLayout->addWidget(saveButton);
+    sidebarLayout->addWidget(schemesTitle);
+    sidebarLayout->addWidget(schemeList, 1);
+    sidebarLayout->addWidget(saveButton);
 
     // Palette preview
     auto* editor = new QFrame;
@@ -126,7 +127,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent)
     paletteHeader->addWidget(paletteDescription);
 
     editorLayout->addLayout(paletteHeader);
-    editorLayout->addLayout(actionLayout);
+    
 
     auto* colorsWidget = new QWidget;
     auto* colors = new QGridLayout(colorsWidget);
@@ -138,16 +139,18 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent)
     scrollArea->setWidgetResizable(true);
     scrollArea->setObjectName("colorScrollArea");
 
-    const auto& colours = m_scheme_editor->get_current()
-        .get_colour_data().get_colours();
+    const auto& colourData = m_scheme_editor->get_current().get_colour_data();
+    
+    const auto colourNames = colourData.get_colour_names();
 
     QVector<ClickableFrame*> colourCards;
 
     int i = 0;
 
-    for (const auto& [colour_name, colour] : colours)
+    for (const auto& colourName : colourNames)
     {
-        const auto name = QString::fromStdString(colour_name);
+        const auto& colour = colourData.get_colour(colourName);
+        const auto name = QString::fromStdString(colourName);
         const auto hex = "#" + QString::fromStdString(colour.to_hex());
 
         auto* card = new ClickableFrame(name, hex);
@@ -625,6 +628,32 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent)
 
         QPushButton#primaryButton:hover {
             background-color: #d8baff;
+        }
+
+        QPushButton#secondaryButton {
+            background-color: #252630;
+            color: #e6e0f5;
+            border: 1px solid #3a3c48;
+            border-radius: 10px;
+            padding: 10px 16px;
+            font-weight: 600;
+        }
+
+        QPushButton#secondaryButton:hover {
+            background-color: #30313d;
+            border-color: #cba6f7;
+            color: #f1eaff;
+        }
+
+        QPushButton#secondaryButton:pressed {
+            background-color: #373044;
+            border-color: #cba6f7;
+        }
+
+        QPushButton#secondaryButton:disabled {
+            background-color: #20222b;
+            color: #6f6c79;
+            border-color: #2b2d38;
         }
     )");
 }
